@@ -82,8 +82,8 @@ function CareerPathContent() {
     const dataParam = searchParams.get('data');
     if (dataParam) {
       try {
-        const decodedData = decodeURIComponent(dataParam);
-        const parsedData = JSON.parse(decodedData);
+        // const decodedData = decodeURIComponent(dataParam);
+        const parsedData = JSON.parse(dataParam);
         
         // Handle different data structures
         if (parsedData.career_roadmap) {
