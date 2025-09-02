@@ -45,11 +45,11 @@ export default function Login() {
       console.log('userData', userData);
       // Redirect to dashboard or home page after successful login
       // Fetch user profile first to get user ID
-      const userProfile = await fetchUserProfile();
+      const userProfile = await fetchUserProfile(userData);
       console.log('userProfile', userProfile);
  
        // Check if user has an existing career path
-       const careerPath = await fetchCareerPath();
+       const careerPath = await fetchCareerPath(userData, userProfile);
        if (careerPath) {
          // User has a career path, redirect to career path page
          localStorage.setItem('careerPath', JSON.stringify(careerPath));

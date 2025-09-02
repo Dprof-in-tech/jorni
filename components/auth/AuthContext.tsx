@@ -32,9 +32,9 @@ interface AuthContextType {
   requestOTP: (email: string) => Promise<void>;
   verifyOTP: (email: string, otp: string) => Promise<void>;
   refreshOTP: (email: string) => Promise<void>;
-  fetchUserProfile: () => Promise<void>;
+  fetchUserProfile: (userData?: User) => Promise<UserProfile>;
   updateProfile: (profileData: Partial<UserProfile>) => Promise<void>;
-  fetchCareerPath: () => Promise<any>;
+  fetchCareerPath: (userData?: User, userProfileData?: UserProfile) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -229,9 +229,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (userData?: User) => {
     try {
-      if (!user?.access_token) {
+      const currentUser = userData || user;
+      if (!currentUser?.access_token) {
         throw new Error('No access token available');
       }
 
@@ -243,7 +244,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await fetch(`${backendUrl}/api/profile/me`, {
         method: 'GET',
         headers: {
-        'Authorization': `${user?.token_type} ${user?.access_token}`,
+        'Authorization': `${currentUser?.token_type} ${currentUser?.access_token}`,
           'Content-Type': 'application/json',
         },
        
@@ -256,6 +257,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const profileData = await response.json();
       setUserProfile(profileData);
+      return profileData;
     } catch (error) {
       console.error('Fetch user profile error:', error);
       throw error;
@@ -297,9 +299,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const fetchCareerPath = async () => {
+  const fetchCareerPath = async (userData?: User, userProfileData?: UserProfile) => {
     try {
-      if (!user?.access_token || !userProfile?.id) {
+      const currentUser = userData || user;
+      const currentProfile = userProfileData || userProfile;
+      
+      if (!currentUser?.access_token || !currentProfile?.id) {
         throw new Error('No access token or user ID available');
       }
 
@@ -308,10 +313,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Backend URL not configured');
       }
 
-      const response = await fetch(`${backendUrl}/api/career-path/for-user/${userProfile.id}`, {
+      const response = await fetch(`${backendUrl}/api/career-path/for-user/${currentProfile.id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `${user?.token_type} ${user?.access_token}`,
+          'Authorization': `${currentUser?.token_type} ${currentUser?.access_token}`,
           'Content-Type': 'application/json',
         },
        
