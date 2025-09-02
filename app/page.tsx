@@ -6,15 +6,37 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, fetchUserProfile, fetchCareerPath } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user) {
-      // If user is logged in, redirect to onboarding
-      router.push('/onboarding');
-    }
-  }, [user, isLoading, router]);
+    const checkUserAndCareerPath = async () => {
+      if (!isLoading && user) {
+        try {
+          // Fetch user profile first to get user ID
+          await fetchUserProfile();
+          
+          // Check if user has an existing career path
+          const careerPath = await fetchCareerPath();
+          if (careerPath) {
+            // User has a career path, redirect to career path page
+            localStorage.setItem('careerPath', JSON.stringify(careerPath));
+            const encodedData = encodeURIComponent(JSON.stringify(careerPath.career_path || careerPath));
+            router.push(`/career-path?data=${encodedData}`);
+          } else {
+            // No career path exists, redirect to onboarding
+            router.push('/onboarding');
+          }
+        } catch (error) {
+          console.error('Error checking career path:', error);
+          // If there's an error, redirect to onboarding
+          router.push('/onboarding');
+        }
+      }
+    };
+
+    checkUserAndCareerPath();
+  }, [user, isLoading, router, fetchUserProfile, fetchCareerPath]);
 
   if (isLoading) {
     return (

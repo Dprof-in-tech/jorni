@@ -11,7 +11,7 @@ export default function Verify() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const { verifyOTP, requestOTP, refreshOTP } = useAuth();
+  const { verifyOTP, refreshOTP } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -79,7 +79,7 @@ export default function Verify() {
 
   return (
     <div className="font-sans flex items-center justify-center min-h-screen w-full py-4 px-2 bg-white">
-      <div className="w-full px-3 py-6 flex flex-col">
+      <div className="w-full md:max-w-2xl mx-auto px-3 py-6 flex flex-col">
         <div className="flex-1 flex flex-col justify-center">
           <div className="mb-8">
             <h1 className="text-[#1C1B1F] text-[22px] font-[400] mb-2">Verify your email</h1>

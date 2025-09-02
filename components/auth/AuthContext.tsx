@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -9,9 +10,16 @@ interface User {
 
 interface UserProfile {
   id: string;
-  email: string;
   username: string;
-  isVerified: boolean;
+  email: string;
+  bio?: string;
+  avatar_url?: string;
+  industry?: string;
+  education_level?: string;
+  years_experience?: number;
+  current_role?: string;
+  career_goals?: string;
+  is_verified: boolean | any;
 }
 
 interface AuthContextType {
@@ -25,6 +33,8 @@ interface AuthContextType {
   verifyOTP: (email: string, otp: string) => Promise<void>;
   refreshOTP: (email: string) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
+  updateProfile: (profileData: Partial<UserProfile>) => Promise<void>;
+  fetchCareerPath: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,8 +93,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-        mode: 'cors',
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -113,8 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, 'username' : fullName, password }),
-        mode: 'cors',
-        credentials: 'include',
+       
       });
 
       if (!response.ok) {
@@ -148,8 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
-        mode: 'cors',
-        credentials: 'include',
+       
       });
 
       if (!response.ok) {
@@ -177,8 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, 'code': otp }),
-        mode: 'cors',
-        credentials: 'include',
+       
       });
 
       if (!response.ok) {
@@ -208,8 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
-        mode: 'cors',
-        credentials: 'include',
+       
       });
 
       if (!response.ok) {
@@ -241,8 +245,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         'Authorization': `${user?.token_type} ${user?.access_token}`,
           'Content-Type': 'application/json',
         },
-        mode: 'cors',
-        credentials: 'include',
+       
       });
 
       if (!response.ok) {
@@ -251,10 +254,79 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const profileData = await response.json();
-      console.log('profile data', profileData)
       setUserProfile(profileData);
     } catch (error) {
       console.error('Fetch user profile error:', error);
+      throw error;
+    }
+  };
+
+  const updateProfile = async (profileData: Partial<UserProfile>) => {
+    try {
+      if (!user?.access_token) {
+        throw new Error('No access token available');
+      }
+
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/profile/me`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `${user?.token_type} ${user?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+       
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update profile');
+      }
+
+      const updatedProfile = await response.json();
+      setUserProfile(updatedProfile);
+      return updatedProfile;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
+  };
+
+  const fetchCareerPath = async () => {
+    try {
+      if (!user?.access_token || !userProfile?.id) {
+        throw new Error('No access token or user ID available');
+      }
+
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const response = await fetch(`${backendUrl}/api/career-path/for-user/${userProfile.id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `${user?.token_type} ${user?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+       
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch career path');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch career path error:', error);
       throw error;
     }
   };
@@ -270,6 +342,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     verifyOTP,
     refreshOTP,
     fetchUserProfile,
+    updateProfile,
+    fetchCareerPath,
   };
 
   return (

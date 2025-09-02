@@ -28,7 +28,7 @@ interface CareerPathData {
 export default function CareerPath() {
   const [careerPathData, setCareerPathData] = useState<CareerPathData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -37,9 +37,20 @@ export default function CareerPath() {
     const dataParam = searchParams.get('data');
     if (dataParam) {
       try {
-        setCareerPathData(JSON.parse(decodeURIComponent(dataParam)));
+        const decodedData = decodeURIComponent(dataParam);
+        const parsedData = JSON.parse(decodedData);
+        
+        // Handle different data structures
+        if (parsedData.career_path) {
+          setCareerPathData(parsedData.career_path);
+        } else if (parsedData.summary && parsedData.milestones) {
+          setCareerPathData(parsedData);
+        } else {
+          console.error('Invalid data structure:', parsedData);
+        }
       } catch (error) {
         console.error('Error parsing career path data:', error);
+        console.error('Raw data param:', dataParam);
       }
     } else {
       // Fallback to localStorage
@@ -47,7 +58,15 @@ export default function CareerPath() {
       if (storedData) {
         try {
           const parsedData = JSON.parse(storedData);
-          setCareerPathData(parsedData.career_path || parsedData);
+          
+          // Handle different data structures
+          if (parsedData.career_path) {
+            setCareerPathData(parsedData.career_path);
+          } else if (parsedData.summary && parsedData.milestones) {
+            setCareerPathData(parsedData);
+          } else {
+            console.error('Invalid stored data structure:', parsedData);
+          }
         } catch (error) {
           console.error('Error parsing stored career path data:', error);
         }

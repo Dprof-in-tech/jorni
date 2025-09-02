@@ -74,7 +74,7 @@ export default function Signup() {
 
   return (
     <div className="font-sans flex items-center justify-center min-h-screen w-full px-2 py-4 bg-white">
-      <div className="w-full h-full px-3 py-6 flex flex-col md:max-w-4xl mx-auto">
+      <div className="w-full h-full px-3 py-6 flex flex-col md:max-w-2xl mx-auto">
         <div className="flex-1 flex flex-col">
           <div className="mb-6">
             <h1 className="text-[#1C1B1F] text-[22px] font-[400] mb-2">Create a new account</h1>

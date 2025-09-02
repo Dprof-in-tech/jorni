@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -61,7 +62,7 @@ export default function Login() {
 
   return (
     <div className="font-sans flex items-center justify-center min-h-screen w-full px-2 py-4 bg-white">
-      <div className="w-full p-6 flex flex-col">
+      <div className="w-full p-6 flex flex-col md:max-w-2xl mx-auto">
         <div className="flex-1 flex flex-col justify-center">
           <div className="text-start mb-8">
             <h1 className="text-[#1C1B1F] text-[28px] font-[400] mb-2">Welcome back.</h1>

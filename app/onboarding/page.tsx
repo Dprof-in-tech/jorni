@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { ProtectedRoute } from "../../components/auth/ProtectedRoute";
 
 export default function Onboarding() {
-  const { user, userProfile, logout, fetchUserProfile } = useAuth();
+  const { user, userProfile, logout, fetchUserProfile, updateProfile } = useAuth();
   const router = useRouter();
 
   const [isGeneratingCareerPath, setIsGeneratingCareerPath] = useState(false);
@@ -25,6 +25,22 @@ export default function Onboarding() {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       if (!backendUrl) {
         throw new Error('Backend URL not configured');
+      }
+
+      // First, update the user profile with onboarding data
+      const profileData = {
+        industry: selections[1],
+        education_level: selections[2],
+        years_experience: parseInt(selections[3].split('-')[0]) || 0,
+        current_role: selections[4],
+        career_goals: selections[5],
+        is_verified: true
+      };
+
+      try {
+         await updateProfile(profileData);
+      } catch (error: any){
+        console.error(error);
       }
 
       // Prepare the career path data
@@ -47,8 +63,7 @@ export default function Onboarding() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(careerPathData),
-        mode: 'cors',
-        credentials: 'include',
+       
       });
 
       if (!response.ok) {
