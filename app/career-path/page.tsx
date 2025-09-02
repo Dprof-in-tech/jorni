@@ -2,31 +2,37 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, ExternalLink, CheckCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthContext';
 import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 
-interface CareerPathResource {
-  title: string;
-  url: string;
+interface UserProfile {
+  current_role: string;
+  target_role: string;
+  location_context: string;
+  visa_considerations: string;
+  experience_level: string;
 }
 
-interface CareerPathMilestone {
-  milestone_number: number;
+interface CareerStage {
   title: string;
+  confidence_score: number;
   description: string;
-  technical_skills_to_acquire: string[];
-  soft_skills_to_develop: string[];
-  helpful_resources: CareerPathResource[];
+  [key: string]: unknown; // Allow additional properties for different stage types
 }
 
-interface CareerPathData {
-  summary: string;
-  milestones: CareerPathMilestone[];
+interface CareerRoadmapData {
+  stage_1_mirror: CareerStage;
+  stage_2_horizon: CareerStage;
+  stage_3_bridge: CareerStage;
+  stage_4_forge: CareerStage;
+  stage_5_peak: CareerStage;
+  user_profile: UserProfile;
 }
+
 
 function CareerPathContent() {
-  const [careerPathData, setCareerPathData] = useState<CareerPathData | null>(null);
+  const [careerRoadmapData, setCareerRoadmapData] = useState<CareerRoadmapData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { logout } = useAuth();
   const router = useRouter();
@@ -41,10 +47,12 @@ function CareerPathContent() {
         const parsedData = JSON.parse(decodedData);
         
         // Handle different data structures
-        if (parsedData.career_path) {
-          setCareerPathData(parsedData.career_path);
-        } else if (parsedData.summary && parsedData.milestones) {
-          setCareerPathData(parsedData);
+        if (parsedData.career_roadmap) {
+          setCareerRoadmapData(parsedData.career_roadmap);
+        } else if (parsedData.career_path) {
+          // Legacy structure - convert to new format if needed
+          setCareerRoadmapData(null);
+          console.log('Legacy career_path structure detected, needs conversion');
         } else {
           console.error('Invalid data structure:', parsedData);
         }
@@ -60,10 +68,12 @@ function CareerPathContent() {
           const parsedData = JSON.parse(storedData);
           
           // Handle different data structures
-          if (parsedData.career_path) {
-            setCareerPathData(parsedData.career_path);
-          } else if (parsedData.summary && parsedData.milestones) {
-            setCareerPathData(parsedData);
+          if (parsedData.career_roadmap) {
+            setCareerRoadmapData(parsedData.career_roadmap);
+          } else if (parsedData.career_path) {
+            // Legacy structure
+            setCareerRoadmapData(null);
+            console.log('Legacy career_path structure in localStorage');
           } else {
             console.error('Invalid stored data structure:', parsedData);
           }
@@ -97,7 +107,7 @@ function CareerPathContent() {
     );
   }
 
-  if (!careerPathData) {
+  if (!careerRoadmapData) {
     return (
       <ProtectedRoute>
         <div className="font-sans flex items-center justify-center min-h-screen w-full p-8 bg-white">
@@ -143,94 +153,101 @@ function CareerPathContent() {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Summary Section */}
+          {/* User Profile Section */}
           <div className="mb-8">
-            <h1 className="text-[#1C1B1F] text-[32px] font-[500] mb-4">Your Career Path</h1>
+            <h1 className="text-[#1C1B1F] text-[32px] font-[500] mb-4">Your Career Roadmap</h1>
             <div className="bg-[#FEF7FF] border border-[#E8DEF8] rounded-lg p-6">
-              <p className="text-[#49454F] text-[18px] leading-relaxed">{careerPathData.summary}</p>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div><span className="font-medium">Current Role:</span> {careerRoadmapData.user_profile.current_role}</div>
+                <div><span className="font-medium">Experience:</span> {careerRoadmapData.user_profile.experience_level}</div>
+                <div><span className="font-medium">Target:</span> {careerRoadmapData.user_profile.target_role}</div>
+                <div><span className="font-medium">Location:</span> {careerRoadmapData.user_profile.location_context}</div>
+              </div>
             </div>
           </div>
 
-          {/* Milestones */}
+          {/* Career Stages */}
           <div className="space-y-8">
-            {careerPathData.milestones.map((milestone) => (
-              <div key={milestone.milestone_number} className="border border-[#E8DEF8] rounded-lg overflow-hidden">
-                {/* Milestone Header */}
-                <div className="bg-[#6750A4] text-white px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-white text-[#6750A4] rounded-full w-8 h-8 flex items-center justify-center font-bold">
-                      {milestone.milestone_number}
-                    </div>
-                    <h2 className="text-[24px] font-[500]">{milestone.title}</h2>
+            {/* Stage 1: Mirror */}
+            <div className="border border-[#E8DEF8] rounded-lg overflow-hidden">
+              <div className="bg-[#6750A4] text-white px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white text-[#6750A4] rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {careerRoadmapData.stage_1_mirror.confidence_score}%
                   </div>
-                </div>
-
-                {/* Milestone Content */}
-                <div className="p-6 space-y-6">
-                  {/* Description */}
-                  <div>
-                    <h3 className="text-[#1C1B1F] text-[18px] font-[500] mb-2">Description</h3>
-                    <p className="text-[#49454F] text-[16px] leading-relaxed">{milestone.description}</p>
-                  </div>
-
-                  {/* Skills Grid */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Technical Skills */}
-                    <div>
-                      <h3 className="text-[#1C1B1F] text-[18px] font-[500] mb-3 flex items-center gap-2">
-                        <CheckCircle size={20} className="text-[#6750A4]" />
-                        Technical Skills to Acquire
-                      </h3>
-                      <ul className="space-y-2">
-                        {milestone.technical_skills_to_acquire.map((skill, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <div className="w-2 h-2 bg-[#6750A4] rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-[#49454F] text-[15px]">{skill}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Soft Skills */}
-                    <div>
-                      <h3 className="text-[#1C1B1F] text-[18px] font-[500] mb-3 flex items-center gap-2">
-                        <CheckCircle size={20} className="text-[#6750A4]" />
-                        Soft Skills to Develop
-                      </h3>
-                      <ul className="space-y-2">
-                        {milestone.soft_skills_to_develop.map((skill, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <div className="w-2 h-2 bg-[#6750A4] rounded-full mt-2 flex-shrink-0"></div>
-                            <span className="text-[#49454F] text-[15px]">{skill}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Resources */}
-                  <div>
-                    <h3 className="text-[#1C1B1F] text-[18px] font-[500] mb-3">Helpful Resources</h3>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {milestone.helpful_resources.map((resource, index) => (
-                        <a
-                          key={index}
-                          href={resource.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 p-3 border border-[#E8DEF8] rounded-lg hover:bg-[#FEF7FF] transition-colors group"
-                        >
-                          <span className="text-[#6750A4] text-[14px] flex-1 group-hover:text-[#5A3E9A] transition-colors">
-                            {resource.title}
-                          </span>
-                          <ExternalLink size={16} className="text-[#6750A4] group-hover:text-[#5A3E9A] transition-colors" />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
+                  <h2 className="text-[24px] font-[500]">{careerRoadmapData.stage_1_mirror.title}</h2>
                 </div>
               </div>
-            ))}
+              <div className="p-6">
+                <p className="text-[#49454F] text-[16px] leading-relaxed mb-4">{careerRoadmapData.stage_1_mirror.description}</p>
+                {typeof careerRoadmapData.stage_1_mirror.market_position === 'string' && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium mb-2">Market Position:</h3>
+                    <p className="text-sm text-gray-600">{careerRoadmapData.stage_1_mirror.market_position}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stage 2: Horizon */}
+            <div className="border border-[#E8DEF8] rounded-lg overflow-hidden">
+              <div className="bg-[#6750A4] text-white px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white text-[#6750A4] rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {careerRoadmapData.stage_2_horizon.confidence_score}%
+                  </div>
+                  <h2 className="text-[24px] font-[500]">{careerRoadmapData.stage_2_horizon.title}</h2>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-[#49454F] text-[16px] leading-relaxed">{careerRoadmapData.stage_2_horizon.description}</p>
+              </div>
+            </div>
+
+            {/* Stage 3: Bridge */}
+            <div className="border border-[#E8DEF8] rounded-lg overflow-hidden">
+              <div className="bg-[#6750A4] text-white px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white text-[#6750A4] rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {careerRoadmapData.stage_3_bridge.confidence_score}%
+                  </div>
+                  <h2 className="text-[24px] font-[500]">{careerRoadmapData.stage_3_bridge.title}</h2>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-[#49454F] text-[16px] leading-relaxed">{careerRoadmapData.stage_3_bridge.description}</p>
+              </div>
+            </div>
+
+            {/* Stage 4: Forge */}
+            <div className="border border-[#E8DEF8] rounded-lg overflow-hidden">
+              <div className="bg-[#6750A4] text-white px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white text-[#6750A4] rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {careerRoadmapData.stage_4_forge.confidence_score}%
+                  </div>
+                  <h2 className="text-[24px] font-[500]">{careerRoadmapData.stage_4_forge.title}</h2>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-[#49454F] text-[16px] leading-relaxed">{careerRoadmapData.stage_4_forge.description}</p>
+              </div>
+            </div>
+
+            {/* Stage 5: Peak */}
+            <div className="border border-[#E8DEF8] rounded-lg overflow-hidden">
+              <div className="bg-[#6750A4] text-white px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white text-[#6750A4] rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                    {careerRoadmapData.stage_5_peak.confidence_score}%
+                  </div>
+                  <h2 className="text-[24px] font-[500]">{careerRoadmapData.stage_5_peak.title}</h2>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-[#49454F] text-[16px] leading-relaxed">{careerRoadmapData.stage_5_peak.description}</p>
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}
