@@ -12,7 +12,7 @@ export default function Login() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const { login, fetchCareerPath, fetchUserProfile, user } = useAuth();
+  const { login, fetchCareerPath, fetchUserProfile } = useAuth();
   const router = useRouter();
 
   const validateForm = () => {
@@ -41,11 +41,13 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      await login(formData.email, formData.password);
+      const userData = await login(formData.email, formData.password);
+      console.log('userData', userData);
       // Redirect to dashboard or home page after successful login
       // Fetch user profile first to get user ID
-      await fetchUserProfile();
-      if (user){
+      const userProfile = await fetchUserProfile();
+      console.log('userProfile', userProfile);
+ 
        // Check if user has an existing career path
        const careerPath = await fetchCareerPath();
        if (careerPath) {
@@ -57,10 +59,6 @@ export default function Login() {
          // No career path exists, redirect to onboarding
          router.push('/onboarding');
        }
-      } else {
-         // No career path exists, redirect to onboarding
-         router.push('/onboarding');
-      }
     } catch (error: any) {
       setErrors({ submit: error.message || 'Login failed' });
     } finally {

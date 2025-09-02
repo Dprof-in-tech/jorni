@@ -26,7 +26,7 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   signup: (email: string, fullName: string, password: string) => Promise<void>;
   logout: () => void;
   requestOTP: (email: string) => Promise<void>;
@@ -102,6 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const userData = await response.json();
       saveUserToStorage(userData);
+      return userData;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
