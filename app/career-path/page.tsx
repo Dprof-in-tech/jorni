@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ExternalLink, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthContext';
@@ -25,7 +25,7 @@ interface CareerPathData {
   milestones: CareerPathMilestone[];
 }
 
-export default function CareerPath() {
+function CareerPathContent() {
   const [careerPathData, setCareerPathData] = useState<CareerPathData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { logout } = useAuth();
@@ -251,5 +251,22 @@ export default function CareerPath() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function CareerPath() {
+  return (
+    <Suspense fallback={
+      <ProtectedRoute>
+        <div className="font-sans flex items-center justify-center min-h-screen w-full p-8 bg-white">
+          <div className="w-fit flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6750A4]"></div>
+            <p className="text-[#49454F] text-[14px]">Loading...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    }>
+      <CareerPathContent />
+    </Suspense>
   );
 }

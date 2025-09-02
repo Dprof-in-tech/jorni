@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '../../components/auth/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function Verify() {
+function VerifyContent() {
   const [otp, setOtp] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -141,5 +141,20 @@ export default function Verify() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Verify() {
+  return (
+    <Suspense fallback={
+      <div className="font-sans flex items-center justify-center min-h-screen w-full p-8 bg-white">
+        <div className="w-fit flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6750A4]"></div>
+          <p className="text-[#49454F] text-[14px]">Loading...</p>
+        </div>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   );
 }
