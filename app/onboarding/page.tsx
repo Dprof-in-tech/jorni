@@ -49,11 +49,16 @@ export default function Onboarding() {
           years_experience: selections[3], // Years in industry
           current_role: selections[4], // Current role
         career_goal: selections[5], // Career goals/motivation
-        career_goals_text: selections[5], // Career goals/motivation
+        career_goals: selections[5], // Career goals/motivation
           education_level: selections[2], // Education level
           location: selections[0], // Location (Ireland or not)
         userEmail: userProfile?.email || '',
         fullName: userProfile?.username || '',
+        visa_status: '',
+    current_location: '',
+    target_location: '',
+    neurodiversity_considerations: '',
+    immigration_status: '',
       };
 
       const response = await fetch(`${backendUrl}/api/career-path/generate`, {
@@ -63,8 +68,9 @@ export default function Onboarding() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(careerPathData),
-       
       });
+
+      console.log('career path response', response);
 
       if (!response.ok) {
         const error = await response.json();
