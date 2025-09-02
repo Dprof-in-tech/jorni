@@ -509,7 +509,7 @@ function CareerPathContent() {
           <div className="mb-8">
             <h1 className="text-[#1C1B1F] text-[32px] font-[500] mb-4">Your Career Roadmap</h1>
             <div className="bg-[#FEF7FF] border border-[#E8DEF8] rounded-lg p-6">
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="grid md:grid-cols-2 gap-4 text-sm text-black">
                 <div><span className="font-medium text-[#1C1B1F]">Current Role:</span> {careerRoadmapData.user_profile.current_role}</div>
                 <div><span className="font-medium text-[#1C1B1F]">Experience:</span> {careerRoadmapData.user_profile.experience_level}</div>
                 <div><span className="font-medium text-[#1C1B1F]">Target:</span> {careerRoadmapData.user_profile.target_role}</div>
