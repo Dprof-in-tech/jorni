@@ -76,8 +76,9 @@ export default function Signup() {
     <div className="font-sans flex items-center justify-center min-h-screen w-full px-2 py-4 bg-white">
       <div className="w-full h-full px-3 py-6 flex flex-col md:max-w-2xl mx-auto">
         <div className="flex-1 flex flex-col">
-          <div className="mb-6">
-            <h1 className="text-[#1C1B1F] text-[22px] font-[400] mb-2">Create a new account</h1>
+          <div className="text-center mb-6">
+            <h1 className="text-[#6750A4] text-[36px] font-[700] mb-6">JORNI</h1>
+            <h2 className="text-[#1C1B1F] text-[22px] font-[400] mb-2">Create a new account</h2>
             <p className="text-[#49454F] text-[14px]">Your journey begins here</p>
           </div>
           
@@ -158,7 +159,7 @@ export default function Signup() {
                 type="submit"
                 disabled={isLoading}
                 className={`bg-[#6750A4] w-full h-[48px] rounded-full text-white font-[500] mb-4 ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
                 {isLoading ? 'Creating account...' : 'Continue'}
@@ -166,7 +167,7 @@ export default function Signup() {
               
               <div className="text-center">
                 <span className="text-[#49454F] text-[14px]">Already registered? </span>
-                <a href="/login" className="text-[#6750A4] text-[14px] font-[500]">Login here</a>
+                <a href="/login" className="text-[#6750A4] text-[14px] font-[500] cursor-pointer">Login here</a>
               </div>
             </div>
           </form>

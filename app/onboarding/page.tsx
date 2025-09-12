@@ -11,12 +11,49 @@ export default function Onboarding() {
   const router = useRouter();
 
   const [isGeneratingCareerPath, setIsGeneratingCareerPath] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
 
 
 
   const handleLogout = () => {
     logout();
     router.push('/');
+  };
+
+  const uploadResume = async (file: File) => {
+    setIsUploadingResume(true);
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+      if (!backendUrl) {
+        throw new Error('Backend URL not configured');
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${backendUrl}/api/cv/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `${user?.token_type} ${user?.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upload resume');
+      }
+
+      const result = await response.json();
+      console.log('Resume uploaded successfully:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Resume upload error:', error);
+      throw error;
+    } finally {
+      setIsUploadingResume(false);
+    }
   };
 
   const generateCareerPath = async () => {
@@ -29,11 +66,12 @@ export default function Onboarding() {
 
       // First, update the user profile with onboarding data
       const profileData = {
-        industry: selections[1],
-        education_level: selections[2],
-        years_experience: parseInt(selections[3].split('-')[0]) || 0,
-        current_role: selections[4],
-        career_goals: selections[5],
+        current_location: selections[0],
+        target_location: selections[1],
+        immigration_status: selections[2],
+        visa_status: selections[3],
+        neurodiversity_considerations: selections[4],
+        career_goals: selections[6],
         is_verified: true
       };
 
@@ -45,20 +83,12 @@ export default function Onboarding() {
 
       // Prepare the career path data
       const careerPathData = {
-          industry: selections[1], // Industry selection
-          years_experience: selections[3], // Years in industry
-          current_role: selections[4], // Current role
-        career_goal: selections[5], // Career goals/motivation
-        career_goals: selections[5], // Career goals/motivation
-          education_level: selections[2], // Education level
-          location: selections[0], // Location (Ireland or not)
-        userEmail: userProfile?.email || '',
-        fullName: userProfile?.username || '',
-        visa_status: '',
-    current_location: '',
-    target_location: '',
-    neurodiversity_considerations: '',
-    immigration_status: '',
+          current_location: selections[0],
+          target_location: selections[1],
+          immigration_status: selections[2],
+          visa_status: selections[3],
+          neurodiversity_considerations: selections[4],
+          career_goals: selections[6],
       };
 
       const response = await fetch(`${backendUrl}/api/career-path/generate`, {
@@ -83,8 +113,9 @@ export default function Onboarding() {
       localStorage.setItem('careerPath', JSON.stringify(careerPath));
       
       // Redirect to career path page with data in URL params
-      const encodedData = encodeURIComponent(JSON.stringify(careerPath.career_path || careerPath));
-      router.push(`/career-path?data=${encodedData}`);
+      // const encodedData = JSON.stringify(careerPath.career_path || careerPath);
+      
+      router.push(`/career-path`);
   
       
       } catch (error: any) {
@@ -111,41 +142,52 @@ export default function Onboarding() {
 
   const steps = [
     {
-      title: "Location",
-      subtitle: "Are you currently based in Ireland?",
-      type: "binary",
-      options: ["Yes", "No"]
+      title: "Current Location",
+      subtitle: "Where are you currently based?",
+      placeholder: "Where are you currently based?",
+      type: "text",
     },
     {
-      title: "Industry", 
-      subtitle: "Which industry are you currently in?",
+      title: "Target Location",
+      subtitle: "Where is your target location for a job?",
+      placeholder: "Where is your target location for a job?",
+      type: "text",
+    },
+    {
+      title: "Immigration status",
+      subtitle: "What is your current immigration status?",
       type: "grid",
-      options: ["Sales", "Tech", "Retail", "Legal", "Other"]
+      options: ["Temporary resident", "Permanent resident", "Undocumented", "EEA/Irish citizen", "other"],
     },
     {
-      title: "Education",
-      subtitle: "What is your highest level of education?",
-      type: "dropdown",
-      placeholder: "Select your education level",
-      options: ["High School", "Bachelor's", "Master's", "PhD"]
+      title: "Visa status",
+      subtitle: "What is your current Visa status?",
+      type: "grid",
+      options: ["Student visa", "Stamp 1G", "Work permit", "H1-B Visa", "other"],
     },
     {
-      title: "Years",
-      subtitle: "How many years have you been in this industry?",
+      title: "Neurodiversity Considerations", 
+      subtitle: "When thinking about your career journey, which of the following best describes the kind of support or environment that helps you thrive?",
+      placeholder: "Please select your answer",
       type: "dropdown",
-      options: ["1-2 years", "3-5 years", "5+ years"],
-      placeholder: "1-2 years"
+      options: ["Clear structure and step-by-step guidance", "Flexibility to work in my own way and pace", "Visual aids, examples, or demonstrations to learn effectively", "Collaborative support and frequent check-ins", "I’m still exploring what works best for me"]
     },
+    // {
+    //   title: "Current role",
+    //   subtitle: "What is your current role?",
+    //   type: "dropdown",
+    //   placeholder: "Select your current role",
+    //   options: ["Engineer", "Manager", "Director", "Other"]
+    // },
     {
-      title: "Current role",
-      subtitle: "What is your current role?",
-      type: "dropdown",
-      placeholder: "Select your current role",
-      options: ["Engineer", "Manager", "Director", "Other"]
+      title: "Resume",
+      subtitle: "Upload your resume (required!)",
+      type: "file"
     },
     {
       title: "Motivation",
       subtitle: "Tell us about your career goals",
+      placeholder: "Tell us about your career goals...",
       type: "text"
     }
   ];
@@ -158,14 +200,35 @@ export default function Onboarding() {
       [currentStep]: value
     }));
     
-    // If this is the last step, don't auto-advance
-    if (currentStep < steps.length - 1) {
+    // Don't auto-advance for text inputs and file uploads - only for binary, grid, and dropdown
+    if (currentStep < steps.length - 1 && currentStepData.type !== "text" && currentStepData.type !== "file") {
       nextStep();
+    }
+  };
+
+  const handleFileSelection = async (file: File) => {
+    setUploadedFile(file);
+    try {
+      await uploadResume(file);
+      setSelections(prev => ({
+        ...prev,
+        [currentStep]: file.name
+      }));
+    } catch (error) {
+      console.error('Resume upload failed:', error);
+      alert('Failed to upload resume. Please try again.');
+      setUploadedFile(null);
     }
   };
 
   const isStepComplete = () => {
     const selection = selections[currentStep];
+    
+    // For file upload step, require a file to be uploaded
+    if (currentStepData.type === "file") {
+      return uploadedFile !== null;
+    }
+    
     if (!selection) return false;
     
     // For text fields, check if there's meaningful content
@@ -202,7 +265,7 @@ export default function Onboarding() {
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="absolute right-[5%] top-[5%] flex items-center gap-2 text-[#6750A4] hover:text-[#5A3E9A] transition-colors"
+            className="absolute right-[5%] top-[5%] flex items-center gap-2 text-[#6750A4] hover:text-[#5A3E9A] transition-colors cursor-pointer"
           >
             <LogOut size={16} />
             <span className="text-sm">Logout</span>
@@ -225,7 +288,7 @@ export default function Onboarding() {
                     onClick={() => handleSelection(option)}
                     className={`w-full h-[48px] border border-[#79747E] ${index === 0 ? "rounded-l-full" : "rounded-r-full"} text-[#1C1B1F] hover:bg-[#F3F3F3] ${
                       selections[currentStep] === option ? "bg-[#E8DEF8] text-black" : ""
-                    } flex items-center justify-center gap-2`}
+                    } flex items-center justify-center gap-2 cursor-pointer`}
                   >
                     {selections[currentStep] === option && <Check size={16} className="text-black" />}
                     {option}
@@ -242,7 +305,7 @@ export default function Onboarding() {
                     onClick={() => handleSelection(option)}
                     className={`h-[48px] border border-[#79747E] rounded-[4px] text-[#1C1B1F] hover:bg-[#F3F3F3] text-[14px] ${
                       selections[currentStep] === option ? "bg-[#E8DEF8] text-black" : ""
-                    } flex items-center justify-center gap-1`}
+                    } flex items-center justify-center gap-1 cursor-pointer`}
                   >
                     {selections[currentStep] === option && <Check size={14} className="text-black" />}
                     {option}
@@ -256,7 +319,7 @@ export default function Onboarding() {
                 <select 
                   value={selections[currentStep] || ""}
                   onChange={(e) => handleSelection(e.target.value)}
-                  className="w-full h-[56px] px-4 border border-[#79747E] text-[#1C1B1F] bg-white"
+                  className="w-full h-[56px] px-4 border border-[#79747E] text-[#1C1B1F] bg-white cursor-pointer"
                 >
                   <option value="">{currentStepData.placeholder}</option>
                   {currentStepData.options?.map((option, index) => (
@@ -273,26 +336,98 @@ export default function Onboarding() {
                 <textarea 
                   value={selections[currentStep] || ""}
                   onChange={(e) => handleSelection(e.target.value)}
-                  placeholder="Tell us about your career goals..."
+                  placeholder={currentStepData.placeholder}
                   className="w-full h-[120px] p-4 border border-[#79747E] rounded-[4px] text-[#1C1B1F] placeholder:text-[#49454F] resize-none"
                 />
+              </div>
+            )}
+
+            {currentStepData.type === "file" && (
+              <div className="w-full">
+                <div className="border-2 border-dashed border-[#79747E] rounded-[4px] p-8 text-center">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileSelection(file);
+                      }
+                    }}
+                    className="hidden"
+                    id="resume-upload"
+                  />
+                  <label 
+                    htmlFor="resume-upload" 
+                    className="cursor-pointer flex flex-col items-center gap-3"
+                  >
+                    {isUploadingResume ? (
+                      <>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6750A4]"></div>
+                        <p className="text-[#49454F] text-[14px]">Uploading...</p>
+                      </>
+                    ) : uploadedFile ? (
+                      <>
+                        <Check size={32} className="text-green-600" />
+                        <p className="text-[#1C1B1F] text-[16px] font-[500]">{uploadedFile.name}</p>
+                        <p className="text-[#49454F] text-[14px]">Resume uploaded successfully</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 bg-[#E8DEF8] rounded-full flex items-center justify-center">
+                          <svg className="w-6 h-6 text-[#6750A4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <p className="text-[#1C1B1F] text-[16px] font-[500]">Upload your resume</p>
+                        <p className="text-[#49454F] text-[14px]">PDF, DOC, or DOCX files accepted</p>
+                      </>
+                    )}
+                  </label>
+                </div>
+                {uploadedFile && !isUploadingResume && (
+                  <button
+                    onClick={() => {
+                      setUploadedFile(null);
+                      setSelections(prev => ({
+                        ...prev,
+                        [currentStep]: ""
+                      }));
+                    }}
+                    className="mt-3 text-[#6750A4] text-[14px] hover:text-[#5A3E9A] transition-colors cursor-pointer"
+                  >
+                    Remove file
+                  </button>
+                )}
               </div>
             )}
           </div>
 
           {/* Action Button */}
           <div className="mt-4">
-            {currentStep === steps.length - 1 && (
+            {currentStep === steps.length - 1 ? (
               <button 
                 onClick={generateCareerPath}
                 disabled={!isStepComplete()}
                 className={`w-full h-[48px] rounded-full text-white font-[500] ${
                   isStepComplete() 
-                    ? "bg-[#6750A4] hover:bg-[#5A3E9A]" 
+                    ? "bg-[#6750A4] hover:bg-[#5A3E9A] cursor-pointer" 
                     : "bg-gray-300 cursor-not-allowed"
                 } ${isGeneratingCareerPath && "bg-gray-300 cursor-not-allowed"}`}
               >
                {isGeneratingCareerPath ? "Finishing..." : 'Finish'}
+              </button>
+            ) : (
+              <button 
+                onClick={nextStep}
+                disabled={!isStepComplete()}
+                className={`w-full h-[48px] rounded-full text-white font-[500] ${
+                  isStepComplete() 
+                    ? "bg-[#6750A4] hover:bg-[#5A3E9A] cursor-pointer" 
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
+              >
+                {currentStepData.type === "file" ? "Continue" : "Next"}
               </button>
             )}
           </div>

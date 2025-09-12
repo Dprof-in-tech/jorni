@@ -120,7 +120,7 @@ function VerifyContent() {
                 type="submit"
                 disabled={isLoading}
                 className={`bg-[#6750A4] w-full h-[48px] rounded-full text-white font-[500] ${
-                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
                 {isLoading ? 'Verifying...' : 'Verify Email'}
@@ -131,7 +131,7 @@ function VerifyContent() {
                   type="button"
                   onClick={handleResendCode}
                   disabled={isResending}
-                  className="text-[#6750A4] text-[14px] font-[500] hover:underline"
+                  className={`text-[#6750A4] text-[14px] font-[500] hover:underline ${isResending ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {isResending ? 'Sending...' : 'Resend code'}
                 </button>

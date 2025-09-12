@@ -82,8 +82,8 @@ function CareerPathContent() {
     const dataParam = searchParams.get('data');
     if (dataParam) {
       try {
-        // const decodedData = decodeURIComponent(dataParam);
-        const parsedData = JSON.parse(dataParam);
+        const decodedData = decodeURIComponent(dataParam);
+        const parsedData = JSON.parse(decodedData);
         
         // Handle different data structures
         if (parsedData.career_roadmap) {
@@ -487,7 +487,7 @@ function CareerPathContent() {
             <div className="flex items-center gap-4">
               <button
                 onClick={handleBackToOnboarding}
-                className="flex items-center gap-2 text-[#6750A4] hover:text-[#5A3E9A] transition-colors"
+                className="flex items-center gap-2 text-[#6750A4] hover:text-[#5A3E9A] transition-colors cursor-pointer"
               >
                 <ArrowLeft size={20} />
                 <span>Back to Onboarding</span>
@@ -496,7 +496,7 @@ function CareerPathContent() {
             
             <button
               onClick={handleLogout}
-              className="text-[#6750A4] hover:text-[#5A3E9A] transition-colors"
+              className="text-[#6750A4] hover:text-[#5A3E9A] transition-colors cursor-pointer"
             >
               Logout
             </button>
@@ -554,7 +554,7 @@ function CareerPathContent() {
                             href={resource.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 p-3 border border-[#E8DEF8] rounded-lg hover:bg-[#FEF7FF] transition-colors group"
+                            className="flex items-center gap-2 p-3 border border-[#E8DEF8] rounded-lg hover:bg-[#FEF7FF] transition-colors group cursor-pointer"
                           >
                             <span className="text-[#6750A4] text-sm flex-1 group-hover:text-[#5A3E9A] transition-colors line-clamp-2">
                               {resource.title}
@@ -574,13 +574,13 @@ function CareerPathContent() {
           <div className="mt-12 flex justify-center gap-4">
             <button
               onClick={handleBackToOnboarding}
-              className="bg-transparent border border-[#6750A4] text-[#6750A4] px-8 py-3 rounded-full font-[500] hover:bg-[#6750A4] hover:text-white transition-colors"
+              className="bg-transparent border border-[#6750A4] text-[#6750A4] px-8 py-3 rounded-full font-[500] hover:bg-[#6750A4] hover:text-white transition-colors cursor-pointer"
             >
               Modify Onboarding
             </button>
             <button
               onClick={() => window.print()}
-              className="bg-[#6750A4] text-white px-8 py-3 rounded-full font-[500] hover:bg-[#5A3E9A] transition-colors"
+              className="bg-[#6750A4] text-white px-8 py-3 rounded-full font-[500] hover:bg-[#5A3E9A] transition-colors cursor-pointer"
             >
               Print Career Path
             </button>

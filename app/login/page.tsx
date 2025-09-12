@@ -12,7 +12,7 @@ export default function Login() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const { login, fetchCareerPath, fetchUserProfile } = useAuth();
+  const { login, fetchUserProfile } = useAuth();
   const router = useRouter();
 
   const validateForm = () => {
@@ -43,22 +43,12 @@ export default function Login() {
     try {
       const userData = await login(formData.email, formData.password);
       console.log('userData', userData);
-      // Redirect to dashboard or home page after successful login
       // Fetch user profile first to get user ID
       const userProfile = await fetchUserProfile(userData);
       console.log('userProfile', userProfile);
  
-       // Check if user has an existing career path
-       const careerPath = await fetchCareerPath(userData, userProfile);
-       if (careerPath) {
-         // User has a career path, redirect to career path page
-         localStorage.setItem('careerPath', JSON.stringify(careerPath));
-         const encodedData = encodeURIComponent(JSON.stringify(careerPath.career_path || careerPath));
-         router.push(`/career-path?data=${encodedData}`);
-       } else {
-         // No career path exists, redirect to onboarding
-         router.push('/onboarding');
-       }
+      // Always redirect to onboarding after successful login
+      router.push('/onboarding');
     } catch (error: any) {
       setErrors({ submit: error.message || 'Login failed' });
     } finally {
@@ -79,8 +69,9 @@ export default function Login() {
     <div className="font-sans flex items-center justify-center min-h-screen w-full px-2 py-4 bg-white">
       <div className="w-full p-6 flex flex-col md:max-w-2xl mx-auto">
         <div className="flex-1 flex flex-col justify-center">
-          <div className="text-start mb-8">
-            <h1 className="text-[#1C1B1F] text-[28px] font-[400] mb-2">Welcome back.</h1>
+          <div className="text-center mb-8">
+            <h1 className="text-[#6750A4] text-[36px] font-[700] mb-6">JORNI</h1>
+            <h2 className="text-[#1C1B1F] text-[28px] font-[400] mb-2">Welcome back.</h2>
             <p className="text-[#49454F] text-[14px]">Login to your account</p>
           </div>
           
@@ -129,7 +120,7 @@ export default function Login() {
             onClick={handleSubmit}
             disabled={isLoading}
             className={`bg-[#6750A4] w-full h-[48px] rounded-full text-white font-[500] mb-4 ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
             }`}
           >
             {isLoading ? 'Logging in...' : 'Login'}
@@ -137,7 +128,7 @@ export default function Login() {
           
           <div className="text-center">
             <span className="text-[#49454F] text-[14px]">No account yet? </span>
-            <a href="/signup" className="text-[#6750A4] text-[14px] font-[500]">Register here</a>
+            <a href="/signup" className="text-[#6750A4] text-[14px] font-[500] cursor-pointer">Register here</a>
           </div>
         </div>
       </div>
