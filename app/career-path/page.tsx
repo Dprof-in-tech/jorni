@@ -426,9 +426,9 @@ function CareerPathContent() {
               </div>
               {hireabilityScore && (
                 <div className="mt-3 pt-3 border-t border-green-200">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col md:flex-row justify-between items-center">
                     <span className="text-green-800 font-medium">Hireability Score</span>
-                    <span className="text-green-800 font-bold text-lg">{hireabilityScore}%</span>
+                    <span className="text-green-800 font-bold text-md md:text-lg">{hireabilityScore}%</span>
                   </div>
                 </div>
               )}
